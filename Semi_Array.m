@@ -19,6 +19,7 @@ for n = 1: length(theta)
 end
 sum_beam = pattern_left + pattern_right;
 difference_beam = pattern_right - pattern_left;
+figure(1)
 plot(theta, 20*log10(abs(sum_beam)/max(abs(sum_beam))))
 hold on
 plot(theta, 20*log10(abs(difference_beam)/max(abs(difference_beam))))
@@ -28,4 +29,13 @@ set(gca, 'XTICK', -80: 20: 80)
 grid on
 xlabel('angle/degree')
 ylabel('spectrum/dB')
-title('Pattern')
+title('Pattern (\theta_c=0^\circ)')
+
+ratio = difference_beam./sum_beam;
+figure(2)
+plot(theta(find(theta == -10): find(theta == 10)),...
+    imag(ratio(find(theta == -10): find(theta == 10))))
+grid on
+xlabel('angle/degree')
+ylabel('amplitude')
+title('Amplitude-Angle response')

@@ -40,12 +40,14 @@ function w = baylisswin(varargin)
 narginchk(1, 3);  
 [N,NBAR,SLL] = validateinputs(varargin{:});
 
+%----------------------Polynomial coefficients-----------------------%
 C = [0.30387530, -0.05042922, -0.00027989, -0.00000343, -0.00000002;...
      0.98583020, -0.03338850,  0.00014064,  0.00000190,  0.00000001;...
      2.00337487, -0.01141548,  0.00041590,  0.00000373,  0.00000001;...
      3.00636321, -0.00683394,  0.00029281,  0.00000161,  0.00000000;...
      4.00518423, -0.00501795,  0.00021735,  0.00000088,  0.00000000];
 
+%---Roots of derivative of bessel function of the first kind J^\prime_1(\mu_n\pi)---%
 % mu = [ 
 %         0.5860670;
 %         1.6970509;
@@ -69,6 +71,9 @@ C = [0.30387530, -0.05042922, -0.00027989, -0.00000343, -0.00000002;...
 %         19.7455093;
 % ];
 
+%-----Beam direction----%
+% If you want to change beam direction,
+% modify this theta deg.
 theta = 0;
 
 A = C(1,:)*SLL.^(0:4).';
@@ -118,7 +123,7 @@ Fm = ((-1)^m*(m+0.5)^2.*Num)./(2j.*Den);
 %-------------------------------------------------------------------
 function [N,NBAR,SLL] = validateinputs(varargin)
 % Cast to enforce Precision Rules
-N = signal.internal.sigcasttofloat(varargin{1},'double','taylorwin',...
+N = signal.internal.sigcasttofloat(varargin{1},'double','baylisswin',...
   'N','allownumeric');
 % Validate order
 cond = (N ~= floor(N));
@@ -153,10 +158,10 @@ if nargin < 3,
     SLL = -30;
 else
     % Cast to enforce Precision Rules
-    SLL = signal.internal.sigcasttofloat(varargin{3},'double','taylorwin',...
+    SLL = signal.internal.sigcasttofloat(varargin{3},'double','baylisswin',...
       'SLL','allownumeric');    
     if SLL>0,
-        error(message('signal:taylorwin:SLLMustBeNegative'));
+        error(message('signal:baylisswin:SLLMustBeNegative'));
     end
 end
 

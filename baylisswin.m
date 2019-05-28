@@ -40,33 +40,80 @@ function w = baylisswin(varargin)
 narginchk(1, 3);  
 [N,NBAR,SLL] = validateinputs(varargin{:});
 
-A = acosh(10^(-SLL/20))/pi;
+C = [0.30387530, -0.05042922, -0.00027989, -0.00000343, -0.00000002;...
+     0.98583020, -0.03338850,  0.00014064,  0.00000190,  0.00000001;...
+     2.00337487, -0.01141548,  0.00041590,  0.00000373,  0.00000001;...
+     3.00636321, -0.00683394,  0.00029281,  0.00000161,  0.00000000;...
+     4.00518423, -0.00501795,  0.00021735,  0.00000088,  0.00000000];
 
-% Taylor pulse widening (dilation) factor.
-sp2 = NBAR^2/(A^2 + (NBAR-.5)^2);
+% mu = [ 
+%         0.5860670;
+%         1.6970509;
+%         2.7171939;
+%         3.7261370;
+%         4.7312271;
+%         5.7345205;
+%         6.7368281;
+%         7.7385356;
+%         8.7398505;
+%         9.7408945;
+%         10.7417435;
+%         11.7424475;
+%         12.7430408;
+%         13.7435477;
+%         14.7439856;
+%         15.7443679;
+%         16.7447044;
+%         17.7450030;
+%         18.7452697;
+%         19.7455093;
+% ];
 
-w = ones(N,1);
-Fm = zeros(NBAR-1,1);
+theta = 0;
+
+A = C(1,:)*SLL.^(0:4).';
+global xi_T
+xi_T = [C(2,:)*SLL.^(0:4).', C(3,:)*SLL.^(0:4).', ...
+        C(4,:)*SLL.^(0:4).', C(5,:)*SLL.^(0:4).'
+];
+
+% Bayliss pulse widening (dilation) factor.
+% if NBAR > length(mu)
+%     sp2 = (1 + (3/4)/NBAR)^2;
+% else
+%     sp2 = mu(NBAR)^2/(A^2 + NBAR^2);
+% end
+sp2 = (NBAR+0.5)^2/(A^2+NBAR^2);
+
+Fm = zeros(NBAR,1);
 summation = 0;
 k = (0:N-1)';
 xi = (k-0.5*N+0.5)/N;
-for m = 1:(NBAR-1),
-    Fm(m) = calculateFm(m,sp2,A,NBAR);
-    summation = Fm(m)*cos(2*pi*m*xi)+summation;
+for m = (0:NBAR-1),
+    Fm(m+1) = calculateFm(m,sp2,A,NBAR);
+    summation = Fm(m+1)*sin(2*pi*(m+0.5)*xi)+summation;
 end
-w = w + 2*summation;
+w = exp(-1j*pi*(0:N-1)'*sind(theta)).*summation;
 
 %-------------------------------------------------------------------
 function Fm = calculateFm(m,sp2,A,NBAR)
 % Calculate the cosine weights.
 
-n = (1:NBAR-1)';
-p = [1:m-1, m+1:NBAR-1]'; % p~=m
+Z = zeros(NBAR, 1);
+p = [0:m-1, m+1:NBAR-1]'; % p~=m
+global xi_T
 
-Num = prod((1 - (m^2/sp2)./(A^2+(n-0.5).^2)));
-Den = prod((1 - m^2./p.^2));
+if NBAR <= 4
+    Z(1:NBAR) = xi_T(1:NBAR);
+else
+    Z(1:4) = xi_T(1:4);
+    Z(5:NBAR) = sqrt(A^2+(5:NBAR).^2);
+end
 
-Fm = ((-1)^(m+1).*Num)./(2.*Den);
+Num = prod((1 - ((m+0.5)^2/sp2)./(Z(1:NBAR-1).^2)));
+Den = prod((1 - (m+0.5)^2./(p+0.5).^2));
+
+Fm = ((-1)^m*(m+0.5)^2.*Num)./(2j.*Den);
 
 %-------------------------------------------------------------------
 function [N,NBAR,SLL] = validateinputs(varargin)

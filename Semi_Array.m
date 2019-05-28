@@ -8,7 +8,7 @@ theta_signal = 0;
 weight_leftSubArray = exp(-1j*2*pi*margin*(0: num_array/2 - 1)'*sind(theta_signal)/wavelength);
 weight_rightSubArray = exp(-1j*2*pi*margin*(num_array/2: num_array - 1)'*sind(theta_signal)/wavelength);
 
-theta = (-90: 0.1: 90)';
+theta = (-80: 0.1: 80)';
 pattern_left = zeros(length(theta), 1);
 pattern_right = zeros(length(theta), 1);
 for n = 1: length(theta)
@@ -25,7 +25,7 @@ hold on
 plot(theta, 20*log10(abs(difference_beam)/max(abs(difference_beam))))
 hold off
 legend('sum beam', 'difference beam')
-set(gca, 'XTICK', -80: 20: 80)
+set(gca, 'XTICK', -75: 15: 75)
 grid on
 xlabel('angle/degree')
 ylabel('spectrum/dB')

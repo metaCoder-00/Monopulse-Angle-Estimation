@@ -27,11 +27,9 @@ function w = baylisswin(varargin)
 
 %
 %   References:
-%     [1] Carrara, Walter G., Ronald M. Majewski, and Ron S. Goodman,
-%         Spotlight Synthetic Aperture Radar: Signal Processing Algorithms,
-%         Artech House, October 1, 1995.
-%     [2] Brookner, Eli, Practical Phased Array Antenna Systems,
-%         Artech House, Inc., 1991, pg. 2-51.
+%     [1] T. Bayliss, E. (1968). 
+%         Design of Monopulse Antenna Difference Patterns with Low Sidelobes. 
+%         Bell System Technical Journal. 47. 10.1002/j.1538-7305.1968
 
 %#codegen
 

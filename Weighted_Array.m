@@ -10,9 +10,9 @@ sum_beam = zeros(length(theta), 1);
 dif_beam = zeros(length(theta), 1);
 for n = 1: length(theta)
     steerVec = exp(-1j*2*pi*margin*(0: num_array - 1)'*sind(theta(n))/wavelength);
-    weight = taylorwin(num_array);
+    weight = taylorwin(num_array, 4, -30);
     sum_beam(n) = weight'*steerVec;
-    weight = baylisswin(num_array);
+    weight = baylisswin(num_array, 6, -30);
     dif_beam(n) = weight'*steerVec;
 end
 
@@ -26,3 +26,12 @@ grid on
 xlabel('angle/degree')
 ylabel('spectrum/dB')
 title('Pattern (\theta_c=0^\circ)')
+
+ratio = dif_beam./sum_beam;
+figure(2)
+plot(theta(find(theta == -5): find(theta == 5)),...
+    imag(ratio(find(theta == -5): find(theta == 5))))
+grid on
+xlabel('angle/degree')
+ylabel('amplitude')
+title('Amplitude-Angle response')

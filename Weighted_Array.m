@@ -5,15 +5,17 @@ wavelength = c/f;
 margin = wavelength/2;
 theta_signal = 0;
 
+direction = exp(-1j*2*pi*margin*(0: num_array - 1)'*sind(theta_signal)/wavelength);
+
 theta = (-80: 0.1: 80)';
 sum_beam = zeros(length(theta), 1);
 dif_beam = zeros(length(theta), 1);
 for n = 1: length(theta)
     steerVec = exp(-1j*2*pi*margin*(0: num_array - 1)'*sind(theta(n))/wavelength);
     weight = taylorwin(num_array, 4, -30);
-    sum_beam(n) = weight'*steerVec;
-    weight = baylisswin(num_array, 6, -30);
-    dif_beam(n) = weight'*steerVec;
+    sum_beam(n) = (weight.*direction)'*steerVec;
+    weight = baylisswin(num_array, 4, -30);
+    dif_beam(n) = (weight.*direction)'*steerVec;
 end
 
 plot(theta, 20*log10(abs(sum_beam)/max(abs(sum_beam))))

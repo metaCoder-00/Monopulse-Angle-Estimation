@@ -65,7 +65,7 @@ w = summation;
 
 %-------------------------------------------------------------------
 function Fm = calculateFm(m,sp2,A,NBAR)
-% Calculate the cosine weights.
+% Calculate the sine weights.
 
 Z = zeros(NBAR, 1);
 p = [0:m-1, m+1:NBAR-1]'; % p~=m

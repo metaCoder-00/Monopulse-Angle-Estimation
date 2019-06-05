@@ -16,8 +16,8 @@ for n = 1: length(theta)
     pattern1(n) = dir1'*steerVec;
     pattern2(n) = dir2'*steerVec;
 end
-sum_beam = pattern2 + conj(pattern1);
-dif_beam = pattern2 - conj(pattern1);
+sum_beam = abs(pattern2) + abs(pattern1);
+dif_beam = abs(pattern2) - abs(pattern1);
 figure(1)
 plot(theta, 20*log10(abs(sum_beam)/max(abs(sum_beam))))
 hold on
@@ -33,7 +33,7 @@ title('Pattern (\theta_c=0^\circ)')
 ratio = dif_beam./sum_beam;
 figure(2)
 plot(theta(find(theta == -5): find(theta == 5)),...
-    real(ratio(find(theta == -5): find(theta == 5))))
+    ratio(find(theta == -5): find(theta == 5)))
 grid on
 xlabel('angle/degree')
 ylabel('amplitude')

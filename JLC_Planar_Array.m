@@ -1,11 +1,11 @@
-ROW_NUM = 16;
-COL_NUM = 16;
+ROW_NUM = 8;
+COL_NUM = 8;
 ROW_PART = 2;
 COL_PART = 2;
 SUB_ROW_NUM = ROW_NUM/ROW_PART;
 SUB_COL_NUM = COL_NUM/COL_PART;
 SIR = 5;
-SNR = 10;
+SNR = 20;
 SNAPSHOTS = 100;
 
 f = 10e9;
@@ -15,7 +15,6 @@ margin_row = wavelength/2;
 margin_col = wavelength/2;
 direction = [20; 20];
 jammer_main = direction + [2; -2];
-jammer_side = direction + [-50; -50];
 
 transMat_u = zeros(COL_NUM, COL_PART);
 for col = 1:COL_PART
@@ -39,30 +38,54 @@ for n = 1:SNAPSHOTS
     noise = zeros(ROW_NUM, COL_NUM);
     for row = 1:ROW_NUM
         for col = 1:COL_NUM        
-            jammer_main_phase_shift = 2*pi*((row - 1)*margin_row* ... 
+            jammer_main_phase_shift = 2*pi*((col - 1)*margin_col* ... 
                   sind(jammer_main(1))*cosd(jammer_main(2)) + ...
-                  (col - 1)*margin_col*sind(jammer_main(2)))/wavelength;
-            jammerMainVec(row, col) = sqrt(1/10^(SIR/10))*randn()*exp(-1j*jammer_main_phase_shift);
-            jammer_side_phase_shift = 2*pi*((row - 1)*margin_row* ... 
-                                      sind(jammer_side(1))*cosd(jammer_side(2)) + ...
-                                      (col - 1)*margin_col*sind(jammer_side(2)))/wavelength;
-            jammerSideVec(row, col) = sqrt(1/10^(SIR/10))*randn()*exp(-1j*jammer_side_phase_shift);
+                  (row - 1)*margin_row*sind(jammer_main(2)))/wavelength;
+            jammerMainVec(row, col) = sqrt(1/10^(SIR/10))*1*exp(-1j*jammer_main_phase_shift);
             noise(row, col) = sqrt(1/10^(SNR/10))*randn();
         end
     end
     jammerMainVec = jammerMainVec(:);
-    jammerSideVec = jammerSideVec(:);
     noise = noise(:);
-    data = steerVec + jammerMainVec + jammerSideVec + noise;
+    data = jammerMainVec + noise;
     samples(:, n) = data;
 end
 
 sub_samples = transMat'*samples;
+
+%------------------Debug-----------------%
+% w_sum = transMat'*steerVec;
+% w = kron([ones(COL_PART/2, 1); -ones(COL_PART/2, 1)], ones(ROW_PART, 1));
+% w_dif_a = w.*w_sum;
+% w = kron(ones(COL_PART, 1), [ones(ROW_PART/2, 1); -ones(ROW_PART/2, 1)]);
+% w_dif_e = w.*w_sum;
+% covMat = sub_samples*sub_samples'/SNAPSHOTS;
+% theta = (17:0.1:23)';
+% phi = (17:0.1:23)';
+% sum_beam = zeros(length(theta), length(phi));
+% dif_beam_a = zeros(length(theta), length(phi));
+% dif_beam_e = zeros(length(theta), length(phi));
+% for m = 1:length(theta)
+%     for n = 1:length(phi)
+%         steerVec = planarSteerVec(ROW_NUM, COL_NUM, margin_row, margin_col, wavelength, theta(m), phi(n));
+%         sub_sv = transMat'*steerVec;
+%         sum_beam(m, n) = w_sum'*pinv(covMat)*sub_sv;
+%         dif_beam_a(m, n) = w_dif_a'*pinv(covMat)*sub_sv;
+%         dif_beam_e(m, n) = w_dif_a'*pinv(covMat)*sub_sv;
+%     end
+% end
+% 
+% [x, y] = meshgrid(theta, phi);
+% figure
+% mesh(x, y, imag(dif_beam_a./sum_beam))
+% figure
+% mesh(x, y, imag(dif_beam_e./sum_beam))
+
 weight_sum = transMat'*steerVec;
 coef = [
-        pi*ROW_NUM*margin_row*cosd(direction(2))
-        pi*COL_NUM*margin_col*cosd(direction(1))*cosd(direction(2))
-        -pi*COL_NUM*margin_col*sind(direction(1))*sind(direction(2))
+        pi*COL_NUM*margin_col*cosd(direction(2))
+        pi*ROW_NUM*margin_row*cosd(direction(1))*cosd(direction(2))
+        -pi*ROW_NUM*margin_row*sind(direction(1))*sind(direction(2))
         ]/wavelength;
 covMat = sub_samples*sub_samples'/SNAPSHOTS;
 weight_sum = pinv(covMat)*weight_sum;
@@ -119,7 +142,7 @@ consVec_a = [(coef(2)*delta(1) + coef(3)*delta(2))*weight_sum'*sub_sv_ap_ep, ...
              (coef(3)*delta(2))*weight_sum'*sub_sv_ep, ...
              0, ...
              (-coef(3)*delta(2))*weight_sum'*sub_sv_em, ...
-             (-coef(2)*delta(1) + coef(3)*delta(2))*weight_sum'*sub_sv_am_em, ...
+             (-coef(2)*delta(1) + coef(3)*delta(2))*weight_sum'*sub_sv_am_ep, ...
              (-coef(2)*delta(1))*weight_sum'*sub_sv_am, ...
              (-coef(2)*delta(1) - coef(3)*delta(2))*weight_sum'*sub_sv_am_em];
 consVec_e = [(coef(1)*delta(2))*weight_sum'*sub_sv_ap_ep, ...
@@ -144,24 +167,28 @@ for m = 1:length(theta)
     for n = 1:length(phi)
         steerVec = planarSteerVec(ROW_NUM, COL_NUM, margin_row, margin_col, wavelength, theta(m), phi(n));
         sub_sv = transMat'*steerVec;
-        sum_beam(m, n ) = weight_sum'*sub_sv;
+        sum_beam(m, n) = weight_sum'*sub_sv;
         dif_beam_a(m, n) = weight_dif_a'*sub_sv;
         dif_beam_e(m, n) = weight_dif_e'*sub_sv;
     end
 end
+ratio_a = dif_beam_a./sum_beam;
+ratio_e = dif_beam_e./sum_beam;
 
+[x, y] = meshgrid(theta, phi);
 figure
-plot3(theta, phi, imag(dif_beam_a./sum_beam))
+mesh(x, y, imag(ratio_a))
+grid on
 figure
-plot3(theta, phi, imag(dif_beam_e./sum_beam))
+mesh(x, y, imag(ratio_e))
 
 function steerVec = planarSteerVec(ROW_NUM, COL_NUM, margin_row, margin_col, wavelength, azm, elv)
     steerVec = zeros(ROW_NUM, COL_NUM);
     for row = 1:ROW_NUM
         for col = 1:COL_NUM
-            phase_shift = 2*pi*((row - 1)*margin_row* ... 
+            phase_shift = 2*pi*((col - 1)*margin_col* ... 
                           sind(azm)*cosd(elv) + ...
-                          (col - 1)*margin_col*sind(elv))/wavelength;
+                          (row - 1)*margin_row*sind(elv))/wavelength;
             steerVec(row, col) = exp(-1j*phase_shift);
         end
     end

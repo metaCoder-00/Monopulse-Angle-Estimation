@@ -5,7 +5,7 @@ COL_PART = 2;
 SUB_ROW_NUM = ROW_NUM/ROW_PART;
 SUB_COL_NUM = COL_NUM/COL_PART;
 SIR = 5;
-SNR = 20;
+SNR = 25;
 SNAPSHOTS = 100;
 
 f = 10e9;
@@ -14,7 +14,7 @@ wavelength = c/f;
 margin_row = wavelength/2;
 margin_col = wavelength/2;
 direction = [20; 20];
-jammer_main = direction + [2; -2];
+jammer_main = [22; 18];
 
 transMat_u = zeros(COL_NUM, COL_PART);
 for col = 1:COL_PART
@@ -35,18 +35,16 @@ samples = zeros(ROW_NUM*COL_NUM, SNAPSHOTS);
 for n = 1:SNAPSHOTS
     jammerMainVec = zeros(ROW_NUM, COL_NUM);
     jammerSideVec = zeros(ROW_NUM, COL_NUM);
-    noise = zeros(ROW_NUM, COL_NUM);
     for row = 1:ROW_NUM
         for col = 1:COL_NUM        
             jammer_main_phase_shift = 2*pi*((col - 1)*margin_col* ... 
                   sind(jammer_main(1))*cosd(jammer_main(2)) + ...
                   (row - 1)*margin_row*sind(jammer_main(2)))/wavelength;
             jammerMainVec(row, col) = sqrt(1/10^(SIR/10))*1*exp(-1j*jammer_main_phase_shift);
-            noise(row, col) = sqrt(1/10^(SNR/10))*randn();
         end
     end
     jammerMainVec = jammerMainVec(:);
-    noise = noise(:);
+    noise = sqrt(1/10^(SNR/10))*randn(ROW_NUM*COL_NUM, 1);
     data = jammerMainVec + noise;
     samples(:, n) = data;
 end
@@ -166,7 +164,8 @@ dif_beam_e = zeros(length(theta), length(phi));
 for m = 1:length(theta)
     for n = 1:length(phi)
         steerVec = planarSteerVec(ROW_NUM, COL_NUM, margin_row, margin_col, wavelength, theta(m), phi(n));
-        sub_sv = transMat'*steerVec;
+        noise = sqrt(1/10^(SNR/10))*randn(ROW_NUM*COL_NUM, 1);
+        sub_sv = transMat'*(steerVec + jammerMainVec + noise);
         sum_beam(m, n) = weight_sum'*sub_sv;
         dif_beam_a(m, n) = weight_dif_a'*sub_sv;
         dif_beam_e(m, n) = weight_dif_e'*sub_sv;
@@ -178,9 +177,17 @@ ratio_e = dif_beam_e./sum_beam;
 [x, y] = meshgrid(theta, phi);
 figure
 mesh(x, y, imag(ratio_a))
+% axis([17, 23, 17, 23, -100, 100])
+ylabel('Azimuth/degree')
+xlabel('Elevation/degree')
+view(0, 0)
 grid on
 figure
 mesh(x, y, imag(ratio_e))
+ylabel('Azimuth/degree')
+xlabel('Elevation/degree')
+view(90, 0)
+grid on
 
 function steerVec = planarSteerVec(ROW_NUM, COL_NUM, margin_row, margin_col, wavelength, azm, elv)
     steerVec = zeros(ROW_NUM, COL_NUM);

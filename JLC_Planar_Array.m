@@ -1,19 +1,19 @@
 M = 16;
 N = 16;
-L1 = 2;
-L2 = 2;
+L1 = 4;
+L2 = 4;
 
 f = 10e9;
 c = 3e8;
 dy = 0.5;
 dz = 0.5;
-SIR = 5;
-SNR = 50;
-SNAPSHOTS = 200;
-amz = 0;
-elv = 0;
-amz_j = 2;
-elv_j = -2;
+SIR = -20;
+SNR = 20;
+SNAPSHOTS = 100;
+amz = 20;
+elv = 20;
+amz_j = 22;
+elv_j = 18;
 
 jammer = sqrt(1/10^(SIR/10))*planarSteer(M, N, amz_j, elv_j);
 samples = jammer + sqrt(1/10^(SNR/10))*randn(M*N, SNAPSHOTS);
@@ -36,7 +36,7 @@ sv = T'*planarSteer(M, N, amz, elv);
 w_sum = pinv(covMat)*sv;
 
 %--------Debug---------%
-% w_sum = pinv(covMat)*sv;
+% w_sum = sv;
 % w = kron([ones(L1/2, 1); -ones(L1/2, 1)], ones(L2, 1));
 % w_dif_a = w.*w_sum;
 % w = kron(ones(L1, 1), [ones(L2/2, 1); -ones(L2/2, 1)]);
@@ -50,14 +50,17 @@ w_sum = pinv(covMat)*sv;
 %     for n = 1:length(phi)
 %         steerVec = planarSteer(M, N, theta(m), phi(n));
 %         sub_sv = T'*steerVec;
-%         sum_beam(m, n) = w_sum'*pinv(covMat)*sub_sv;
-%         dif_beam_a(m, n) = w_dif_a'*pinv(covMat)*sub_sv;
-%         dif_beam_e(m, n) = w_dif_e'*pinv(covMat)*sub_sv;
+%         sum_beam(m, n) = w_sum'*sub_sv;
+%         dif_beam_a(m, n) = w_dif_a'*sub_sv;
+%         dif_beam_e(m, n) = w_dif_e'*sub_sv;
 %     end
 % end
 % 
 % [x, y] = meshgrid(theta, phi);
 % figure
+% mesh(x, y, 20*log10(abs(sum_beam)/max(max(abs(sum_beam)))))
+% mesh(x, y, 20*log10(abs(dif_beam_a)/max(max(abs(dif_beam_a)))))
+% mesh(x, y, 20*log10(abs(dif_beam_e)/max(max(abs(dif_beam_e)))))
 % mesh(x, y, imag(dif_beam_a./sum_beam))
 % view(90, 0)
 % figure
@@ -116,14 +119,20 @@ end
 
 [x, y] = meshgrid(theta, phi);
 figure
+
+%----------Debug-----------%
+% mesh(x, y, 20*log10(abs(sum_beam)/max(max(abs(sum_beam)))))
+% mesh(x, y, 20*log10(abs(dif_beam_a)/max(max(abs(dif_beam_a)))))
+% mesh(x, y, 20*log10(abs(dif_beam_e)/max(max(abs(dif_beam_e)))))
+
 mesh(x, y, imag(dif_beam_a./sum_beam))
-% axis([amz - dAmz, amz + dAmz, elv - dElv, elv + dElv, -50, 50])
+% axis([amz - dAmz, amz + dAmz, elv - dElv, elv + dElv, -10, 10])
 xlabel('Elevation/degree')
 ylabel('Azimuth/degree')
 view(90, 0)
 figure
 mesh(x, y, imag(dif_beam_e./sum_beam))
-% axis([amz - dAmz, amz + dAmz, elv - dElv, elv + dElv, -50, 50])
+% axis([amz - dAmz, amz + dAmz, elv - dElv, elv + dElv, -10, 10])
 xlabel('Elevation/degree')
 ylabel('Azimuth/degree')
 view(0, 0)

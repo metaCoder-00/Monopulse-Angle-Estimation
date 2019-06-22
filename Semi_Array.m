@@ -27,14 +27,15 @@ hold off
 legend('sum beam', 'difference beam')
 set(gca, 'XTICK', -75: 15: 75)
 grid on
+axis([-75, 75, -50, 0])
 xlabel('angle/degree')
 ylabel('spectrum/dB')
 title('Pattern (\theta_c=0^\circ)')
 
 ratio = difference_beam./sum_beam;
 figure(2)
-plot(theta(find(theta == -10): find(theta == 10)),...
-    imag(ratio(find(theta == -10): find(theta == 10))))
+plot(theta(find(theta == -5): find(theta == 5)),...
+    imag(ratio(find(theta == -5): find(theta == 5))))
 grid on
 xlabel('angle/degree')
 ylabel('amplitude')

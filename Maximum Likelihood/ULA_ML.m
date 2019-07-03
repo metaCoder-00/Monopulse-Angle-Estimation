@@ -26,7 +26,7 @@ covMat_n = covMat_n + (sv_j*jammer.')*(sv_j*jammer.')'/SNAPSHOTS;
 
 %------MBGD-------%
 BATCH = 100;
-BATCH_SIZE = SNAPSHOTS/100;
+BATCH_SIZE = SNAPSHOTS/BATCH;
 theta = BEAM_DIR;
 sine = sind(theta);
 theta_hat = theta;
@@ -69,4 +69,4 @@ plot((0:BATCH)', theta_hat)
 grid on
 xlabel('Batch')
 ylabel('\theta (\circ)')
-title('Singal + Jammer + Noise')
+title('Singal + Jammer + Noise (jammer = 10\circ)')

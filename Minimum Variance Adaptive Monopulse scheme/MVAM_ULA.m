@@ -1,3 +1,9 @@
+%
+%   References:
+%     [1] A. S. Paine, 
+%         Minimum variance monopulse technique for an adaptive phased array radar
+%         IEE Proceedings - Radar, Sonar and Navigation
+%         vol. 145, no. 6, pp. 374-380, Dec. 1998.
 clear
 SENSOR_NUM = 8;
 MARGIN = 0.5;

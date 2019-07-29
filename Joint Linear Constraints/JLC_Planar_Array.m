@@ -1,3 +1,10 @@
+%
+%   References:
+%     [1] Z. Cheng, Z. He, X. Duan, X. Zhang and B. Liao
+%         Adaptive Monopulse Approach With Joint Linear Constraints for Planar Array at Subarray Level
+%         IEEE Transactions on Aerospace and Electronic Systems
+%         vol. 54, no. 3, pp. 1432-1441, June 2018.
+clear
 M = 16;
 N = 16;
 L1 = 4;

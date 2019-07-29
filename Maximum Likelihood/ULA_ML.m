@@ -1,3 +1,9 @@
+%
+%   References:
+%     [1] U. Nickel 
+%         Monopulse estimation with adaptive arrays 
+%         IEE Proceedings F - Radar and Signal Processing
+%         vol. 140, no. 5, pp. 303-308, Oct. 1993.
 clear
 SENSOR_NUM = 8;
 MARGIN = 0.5;

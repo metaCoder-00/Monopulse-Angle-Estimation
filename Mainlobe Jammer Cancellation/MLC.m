@@ -6,15 +6,15 @@
 %         vol. 37, no. 2, pp. 508-523, April 2001.
 
 clear
-M = 16;     % Array elements number
-N = 16;     % Array elements number
+M = 8;     % Array elements number
+N = 8;     % Array elements number
 SNR = 15;
 MLJNR = 20; % Mainlobe jammer to noise ratio
 SLJNR = 20; % Sidelobe jammer to noise ratio
 SNAPSHOTS = 100;
 
 boresight = [0; 45];
-mainlobe_jammer = [3; 42];
+mainlobe_jammer = [2; 43];
 sidelobe_jammer = [30, 15];
 
 sv_dir = planar_steervec(M, N, boresight);                  % Boresight steer vector 
@@ -48,13 +48,13 @@ corrMat_DA_DD = data_DA*data_DD'/SNAPSHOTS;     % Correlation matrix of Delta-az
 w_e = (corrMat_S_DE*pinv(corrMat_DE_DE) + corrMat_DA_DD*pinv(corrMat_DD_DD))/2;     % Mainlobe jammer canceller weight @ elevation
 
 %%
-%---------Beam ratio----------%
-theta = boresight(1) + (-3:0.1:3)';
-phi = boresight(2) + (-3:0.1:3)';
-beam_S_a = zeros(length(theta), length(phi));
-beam_S_e = zeros(length(theta), length(phi));
-beam_D_a = zeros(length(theta), length(phi));
-beam_D_e = zeros(length(theta), length(phi));
+%---------Beam ratio and diagram----------%
+theta = boresight(1) + (-3:0.1:3)';     % Azimuth
+phi = boresight(2) + (-3:0.1:3)';       % Elevation
+beam_S_a = zeros(length(theta), length(phi));       % Sum-azimuth pattern
+beam_S_e = zeros(length(theta), length(phi));       % Sum-elevation pattern
+beam_D_a = zeros(length(theta), length(phi));       % Delta-azimuth pattern
+beam_D_e = zeros(length(theta), length(phi));       % Delta-elevation pattern
 for m = 1:length(theta)
     for n = 1:length(phi)
         x = sqrt(10^(SNR/20))*planar_steervec(M, N, [theta(m); phi(n)]) + ...
@@ -75,18 +75,20 @@ figure
 [x, y] = meshgrid(theta, phi);
 mesh(x, y, imag(ratio_A).')
 title('\Delta_A to \Sigma_A ratio')
-xlabel('Azimuth/degree')
-ylabel('Elevation/degree')
+xlabel('Azimuth (\circ)')
+ylabel('Elevation (\circ)')
 zlabel('\Delta_A/\Sigma_A')
 figure
 [x, y] = meshgrid(theta, phi);
 mesh(x, y, imag(ratio_E).')
 title('\Delta_E to \Sigma_E ratio')
-xlabel('Azimuth/degree')
-ylabel('Elevation/degree')
+xlabel('Azimuth (\circ)')
+ylabel('Elevation (\circ)')
 zlabel('\Delta_E/\Sigma_E')
 
+%%
 function sv = planar_steervec(M, N, dir)
+%------Function to form steering vector of planar array------%
     sv_amz = exp(-1j*2*pi*0.5*(0:M - 1)'*sind(dir(1))*cosd(dir(2)));
     sv_elv = exp(-1j*2*pi*0.5*(0:N - 1)'*sind(dir(2)));
     sv = kron(sv_amz, sv_elv);

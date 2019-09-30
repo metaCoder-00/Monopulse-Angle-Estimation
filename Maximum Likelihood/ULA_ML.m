@@ -7,16 +7,15 @@
 clear
 SENSOR_NUM = 8;
 MARGIN = 0.5;
-SNR = 10;
-JNR = 15;
-SNAPSHOTS = 1000;
+SNR = 15;
+JNR = 20;
+SNAPSHOTS = 600;
 BEAM_DIR = 20;
 
-theta_s = 25;
-theta_j = 10;
+theta_s = 22;
+theta_j = 25;
 amp_s = sqrt(10^(SNR/10));
 amp_j = sqrt(10^(JNR/10));
-covMat_n = eye(SENSOR_NUM);
 
 f = 10e6;
 fs = 2.5*f;
@@ -27,11 +26,12 @@ jammer = amp_j*exp(1j*2*pi*f*Ts + 2*pi*rand(SNAPSHOTS, 1));
 noise = randn(SENSOR_NUM, SNAPSHOTS) + 1j*randn(SENSOR_NUM, SNAPSHOTS);
 sv_s = exp(-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)'*sind(theta_s));
 sv_j = exp(-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)'*sind(theta_j));
-samples = sv_s*signal.' + sv_j*jammer.' + noise;
-covMat_n = covMat_n + (sv_j*jammer.')*(sv_j*jammer.')'/SNAPSHOTS;
+jammer_noise = sv_j*jammer.' + noise;
+samples = sv_s*signal.' + jammer_noise;
+covMat_n = jammer_noise*jammer_noise'/SNAPSHOTS;
 
 %------MBGD-------%
-BATCH = 100;
+BATCH = 200;
 BATCH_SIZE = SNAPSHOTS/BATCH;
 theta = BEAM_DIR;
 sine = sind(theta);
@@ -42,7 +42,7 @@ for batch = 1:BATCH
         sv = exp(-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)'*sine);
         w = pinv(sqrt(sv'*pinv(covMat_n)*sv))*pinv(covMat_n)*sv;
         dSv = (-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)').*sv;
-        d2Sv = pinv(covMat_n)*dSv*sqrt(sv'*pinv(covMat_n)*sv);
+        d2Sv = pinv(covMat_n)*dSv/sqrt(sv'*pinv(covMat_n)*sv);
         mu = real((dSv'*pinv(covMat_n)*sv)/(sv'*pinv(covMat_n)*sv));
         dLf = 2*(real((d2Sv'*samples(:, (batch - 1)*BATCH_SIZE + n))/(w'*samples(:, (batch - 1)*BATCH_SIZE + n))) - mu);
         d2Lf = 2*mu^2 - (2*d2Sv'*dSv)/(w'*sv);
@@ -52,27 +52,8 @@ for batch = 1:BATCH
     theta_hat = [theta_hat; asind(abs(sine))];
 end
 
-%-------SGD--------%
-% for n = 1:SNAPSHOTS
-%     sv = exp(-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)'*sine);
-%     w = pinv(sqrt(sv'*pinv(covMat_n)*sv))*pinv(covMat_n)*sv;
-%     dSv = (-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)').*sv;
-%     d2Sv = pinv(covMat_n)*dSv*sqrt(sv'*pinv(covMat_n)*sv);
-%     mu = real((dSv'*pinv(covMat_n)*sv)/(sv'*pinv(covMat_n)*sv));
-%     dLf = 2*(real((d2Sv'*samples(:, n))/(w'*samples(:, n))) - mu);
-%     d2Lf = 2*mu^2 - (2*d2Sv'*dSv)/(w'*sv);
-%     sine = sine - pinv(d2Lf)*dLf;
-%     theta_hat = [theta_hat; asind(abs(sine))];
-% end
-
-% plot((0:SNAPSHOTS)', theta_hat)
-% grid on
-% xlabel('Itrations')
-% ylabel('\theta (\circ)')
-% title('Singal + Jammer + Noise')
-
 plot((0:BATCH)', theta_hat)
 grid on
 xlabel('Batch')
 ylabel('\theta (\circ)')
-title('Singal + Jammer + Noise (jammer = 10\circ)')
+title('Singal + Jammer + Noise (jammer = 25\circ)')

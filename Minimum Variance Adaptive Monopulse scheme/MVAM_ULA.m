@@ -22,7 +22,7 @@ Ts = (0:SNAPSHOTS - 1)'/fs;
 theta_s = 25;
 theta_j = 18;
 
-MC_L = 1000;
+MC_L = 1;
 delta_theta = (-5:0.1:5)';
 rmse = zeros(length(delta_theta), 1);
 for l = 1:MC_L
@@ -40,7 +40,7 @@ for l = 1:MC_L
         sv_dir = exp(-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)'*sind(BEAM_DIR));
         w_sum = pinv(covMat)*sv_dir/sqrt(sv_dir'*pinv(covMat)*sv_dir);
         dSv_dir = (-1j*2*pi*MARGIN*(0:SENSOR_NUM - 1)').*sv_dir;
-        w_dif = pinv(covMat)*dSv_dir*sqrt(sv_dir'*pinv(covMat)*sv_dir);
+        w_dif = pinv(covMat)*dSv_dir/sqrt(sv_dir'*pinv(covMat)*sv_dir);
 
         c_x = ((w_sum'*sv_dir)*dSv_dir - (w_sum'*dSv_dir)*sv_dir)/(w_sum'*sv_dir)^2;
         B = w_dif'*c_x;
